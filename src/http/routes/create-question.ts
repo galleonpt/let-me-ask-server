@@ -17,26 +17,31 @@ export const createQuestionRoute: FastifyPluginCallbackZod = (app) => {
             },
         },
         async (request, response) => {
-            const { question } = request.body;
-            const { roomId } = request.params;
+            try {
+                const { question } = request.body;
+                const { roomId } = request.params;
 
-            const result = await db
-                .insert(schema.questions)
-                .values({
-                    room_id: roomId,
-                    question,
-                })
-                .returning();
+                const result = await db
+                    .insert(schema.questions)
+                    .values({
+                        room_id: roomId,
+                        question,
+                    })
+                    .returning();
 
-            const insertedQuestion = result[0];
+                const insertedQuestion = result[0];
 
-            if (!insertedQuestion) {
-                throw new Error("Failed to create new room.");
+                if (!insertedQuestion) {
+                    throw new Error("Failed to create new room.");
+                }
+
+                return response
+                    .status(201)
+                    .send({ questionId: insertedQuestion.id });
+                // biome-ignore lint/suspicious/noExplicitAny: avoid unknown error
+            } catch (error: any) {
+                throw new Error("Error creating a room", error);
             }
-
-            return response
-                .status(201)
-                .send({ questionId: insertedQuestion.id });
         }
     );
 };

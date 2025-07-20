@@ -15,23 +15,28 @@ export const createRoomRoute: FastifyPluginCallbackZod = (app) => {
             },
         },
         async (request, response) => {
-            const { name, description } = request.body;
+            try {
+                const { name, description } = request.body;
 
-            const result = await db
-                .insert(schema.rooms)
-                .values({
-                    name,
-                    description,
-                })
-                .returning();
+                const result = await db
+                    .insert(schema.rooms)
+                    .values({
+                        name,
+                        description,
+                    })
+                    .returning();
 
-            const insertedRoom = result[0];
+                const insertedRoom = result[0];
 
-            if (!insertedRoom) {
-                throw new Error("Failed to create new room.");
+                if (!insertedRoom) {
+                    throw new Error("Failed to create new room.");
+                }
+
+                return response.status(201).send({ roomId: insertedRoom.id });
+                // biome-ignore lint/suspicious/noExplicitAny: avoid unknown error
+            } catch (error: any) {
+                throw new Error("Error creating a room", error);
             }
-
-            return response.status(201).send({ roomId: insertedRoom.id });
         }
     );
 };

@@ -15,20 +15,25 @@ export const getRoomQuestionsRoute: FastifyPluginCallbackZod = (app) => {
             },
         },
         async (request) => {
-            const { roomId } = request.params;
+            try {
+                const { roomId } = request.params;
 
-            const result = await db
-                .select({
-                    id: schema.questions.id,
-                    question: schema.questions.question,
-                    answer: schema.questions.answer,
-                    created_at: schema.questions.createdAt,
-                })
-                .from(schema.questions)
-                .where(eq(schema.questions.room_id, roomId))
-                .orderBy(desc(schema.questions.createdAt));
+                const result = await db
+                    .select({
+                        id: schema.questions.id,
+                        question: schema.questions.question,
+                        answer: schema.questions.answer,
+                        created_at: schema.questions.createdAt,
+                    })
+                    .from(schema.questions)
+                    .where(eq(schema.questions.room_id, roomId))
+                    .orderBy(desc(schema.questions.createdAt));
 
-            return result;
+                return result;
+                // biome-ignore lint/suspicious/noExplicitAny: avoid unknown error
+            } catch (error: any) {
+                throw new Error("Error fetching room questions", error);
+            }
         }
     );
 };
